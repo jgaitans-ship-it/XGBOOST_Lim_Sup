@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Julio César Gaitán Silva">
+
+<title>XGBOOST_Lim_Sup</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="XGBOOST_Lim_Sup_files/libs/clipboard/clipboard.min.js"></script>
+<script src="XGBOOST_Lim_Sup_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="XGBOOST_Lim_Sup_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="XGBOOST_Lim_Sup_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="XGBOOST_Lim_Sup_files/libs/quarto-html/popper.min.js"></script>
+<script src="XGBOOST_Lim_Sup_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="XGBOOST_Lim_Sup_files/libs/quarto-html/anchor.min.js"></script>
+<link href="XGBOOST_Lim_Sup_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="XGBOOST_Lim_Sup_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="XGBOOST_Lim_Sup_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="XGBOOST_Lim_Sup_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="XGBOOST_Lim_Sup_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">XGBOOST_Lim_Sup</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Julio César Gaitán Silva </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="cargar-librerías" class="level1">
+<h1>1. Cargar librerías</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)        <span class="co"># Para ajuste de modelos</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Cargando paquete requerido: ggplot2</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Cargando paquete requerido: lattice</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>terra 1.8.80</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(raster)       <span class="co"># Para trabajar con datos raster</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Cargando paquete requerido: sp</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)           <span class="co"># Para manipulación de datos espaciales</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Linking to GEOS 3.13.1, GDAL 3.11.4, PROJ 9.7.0; sf_use_s2() is TRUE</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(openxlsx)     <span class="co"># Para manejar archivos Excel</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)    <span class="co"># Conjunto de paquetes para manipulación de datos\library(DataExplorer) # Exploración de datos</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.6
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ lubridate 1.9.4     ✔ tibble    3.3.0
+✔ purrr     1.2.0     ✔ tidyr     1.3.1</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ tidyr::extract() masks raster::extract(), terra::extract()
+✖ dplyr::filter()  masks stats::filter()
+✖ dplyr::lag()     masks stats::lag()
+✖ purrr::lift()    masks caret::lift()
+✖ dplyr::select()  masks raster::select()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tmap)        <span class="co"># Visualización de mapas\library(ithir)       # Modelado de suelos</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(aqp)         <span class="co"># Análisis de perfiles de suelo</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>This is aqp 2.2-1
+
+Adjuntando el paquete: 'aqp'
+
+The following objects are masked from 'package:dplyr':
+
+    combine, slice
+
+The following objects are masked from 'package:raster':
+
+    coordinates, metadata, metadata&lt;-, proj4string
+
+The following objects are masked from 'package:sp':
+
+    coordinates, coordinates&lt;-, proj4string, proj4string&lt;-</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kernlab)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Adjuntando el paquete: 'kernlab'
+
+The following object is masked from 'package:purrr':
+
+    cross
+
+The following objects are masked from 'package:raster':
+
+    buffer, rotated
+
+The following objects are masked from 'package:terra':
+
+    buffer, size
+
+The following object is masked from 'package:ggplot2':
+
+    alpha</code></pre>
+</div>
+</div>
+</section>
+<section id="carpeta-donde-están-todos-los-rásters-ya-procesados" class="level1">
+<h1>2 Carpeta donde están TODOS los rásters ya procesados</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>ruta <span class="ot">&lt;-</span> <span class="st">"D:/Meta_vichada/aligned/"</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>rasters_sel <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Aspect.tif",</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"CI.tif"</span>,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"C.O.tif"</span>,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Convergence_Index.tif",</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Hillshade.tif",</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"HH.tif",</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"HV.tif"</span>,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"LS_Factor.tif"</span>,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"MCARI.tif"</span>,</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"NDTI.tif"</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Plan_Curvature.tif",</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Precipitación.tif",</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Profile_Curvature.tif",</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Relative_Slope_Position.tif"</span>,</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Suelos_.tif"</span>,</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Temperatura_Media_.tif",</span></span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Topographic_Wetness_Index.tif"</span>,</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Total_Catchment_Area.tif",</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Valley_Depth.tif"</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"GNDVI.tif",</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"BSI.tif",</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Channel_Network_Base_Level.tif",</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Channel_Network_Distance.tif",</span></span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"DEM.tif",</span></span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"EVI.tif",</span></span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"NBR.tif",</span></span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"NDVI.tif",</span></span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"NDWI.tif",</span></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"SAVI.tif",</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Slope.tif"</span></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Temperatura_Maxima_.tif",</span></span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>  <span class="co">#"Temperatura_Minima_.tif",</span></span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="construir-rutas-completas-solo-de-los-seleccionados" class="level1">
+<h1>3. Construir rutas completas SOLO de los seleccionados</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>files_sel <span class="ot">&lt;-</span> <span class="fu">file.path</span>(ruta, rasters_sel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="verificar-cuáles-existen-control-de-errores" class="level1">
+<h1>4. Verificar cuáles existen (control de errores)</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>files_sel <span class="ot">&lt;-</span> files_sel[<span class="fu">file.exists</span>(files_sel)]</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Si alguno falta, aquí lo ves</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">basename</span>(files_sel))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "CI.tif"                        "C.O.tif"                      
+ [3] "HV.tif"                        "LS_Factor.tif"                
+ [5] "MCARI.tif"                     "NDTI.tif"                     
+ [7] "Relative_Slope_Position.tif"   "Suelos_.tif"                  
+ [9] "Topographic_Wetness_Index.tif" "Valley_Depth.tif"             </code></pre>
+</div>
+</div>
+</section>
+<section id="cargar-como-spatraster" class="level1">
+<h1>5. Cargar como SpatRaster</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>raster <span class="ot">&lt;-</span> <span class="fu">rast</span>(files_sel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="verificación-rápida" class="level1">
+<h1>6. Verificación rápida</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">compareGeom</span>(raster, raster[[<span class="dv">1</span>]], <span class="at">stopOnError =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+</section>
+<section id="visualización" class="level1">
+<h1>7. Visualización</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(raster)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="XGBOOST_Lim_Sup_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="obtener-coordenadas-únicas" class="level1">
+<h1>8. Obtener coordenadas únicas</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>SCHS <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"D:/MAESTRIA/Trabajo_final/SCHS.xlsx"</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>Coor <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Perfil_COD1=</span>SCHS<span class="sc">$</span>Perfil_COD1,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">Latitud =</span> SCHS<span class="sc">$</span>Latitud,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">Longitud =</span> SCHS<span class="sc">$</span>Longitud,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">Lim_sup =</span> SCHS<span class="sc">$</span>lim_sup )</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="fu">View</span>(Coor)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(Coor)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   223 obs. of  4 variables:
+ $ Perfil_COD1: chr  "AR-011" "AR-021" "AR-026" "AR-043" ...
+ $ Latitud    : num  3.36 3.5 3.46 3.38 4.5 ...
+ $ Longitud   : num  -73.7 -74 -73.9 -73.7 -71.3 ...
+ $ Lim_sup    : num  13.8 13.5 11.7 16.8 27.6 ...</code></pre>
+</div>
+</div>
+</section>
+<section id="convertir-a-formato-espacial-sf" class="level1">
+<h1>9. Convertir a formato espacial (sf)</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>data_final_sf <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(<span class="at">x =</span> Coor,</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"Longitud"</span>, <span class="st">"Latitud"</span>),</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">crs =</span> <span class="fu">st_crs</span>(<span class="dv">4326</span>))</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">view</span>(data_final_sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="visualizar-los-puntos-sobre-el-modelo-de-elevación-dem" class="level1">
+<h1>10. Visualizar los puntos sobre el modelo de elevación (DEM)</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(raster<span class="sc">$</span>Topographic_Wetness_Index)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(data_final_sf), <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col=</span> <span class="st">"red"</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="XGBOOST_Lim_Sup_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="visualización-con-tmap" class="level1">
+<h1>11. Visualización con tmap</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(raster<span class="sc">$</span>Topographic_Wetness_Index) <span class="sc">+</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_raster</span>(<span class="at">palette =</span> <span class="fu">c</span>(<span class="st">"#CCCCCC"</span>, <span class="st">"#999999"</span>, <span class="st">"#666666"</span>, <span class="st">"#333333"</span>, <span class="st">"#000000"</span>)) <span class="sc">+</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_shape</span>(data_final_sf) <span class="sc">+</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>(<span class="st">"Lim_sup"</span>, <span class="at">palette =</span> <span class="st">"-RdYlBu"</span>, <span class="at">size =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="st">"Mapa Lim_Sup cm"</span>) <span class="sc">+</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_compass</span>() <span class="sc">+</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_scale_bar</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code></code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── tmap v3 code detected ───────────────────────────────────────────────────────</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>[v3-&gt;v4] `tm_tm_raster()`: migrate the argument(s) related to the scale of the
+visual variable `col` namely 'palette' (rename to 'values') to col.scale =
+tm_scale(&lt;HERE&gt;).
+[v3-&gt;v4] `tm_tm_dots()`: migrate the argument(s) related to the scale of the
+visual variable `fill` namely 'palette' (rename to 'values') to fill.scale =
+tm_scale(&lt;HERE&gt;).
+[v3-&gt;v4] `tm_layout()`: use `tm_title()` instead of `tm_layout(title = )`
+! `tm_scale_bar()` is deprecated. Please use `tm_scalebar()` instead.
+SpatRaster object downsampled to 2505 by 3993 cells.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="XGBOOST_Lim_Sup_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="extraer-valores-raster-en-los-puntos-espaciales" class="level1">
+<h1>12. Extraer valores raster en los puntos espaciales</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>extraccion <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">extract</span>(raster, <span class="fu">vect</span>(data_final_sf))</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>data_sf <span class="ot">&lt;-</span> <span class="fu">cbind</span>(data_final_sf, extraccion[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">view</span> (data_sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="modelamiento" class="level1">
+<h1>Modelamiento</h1>
+</section>
+<section id="resumen-de-los-datos-espaciales" class="level1">
+<h1>13. Resumen de los datos espaciales</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data_sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Perfil_COD1           Lim_sup             CI              C.O       
+ Length:223         Min.   : 3.625   Min.   :0.1548   Min.   :16.10  
+ Class :character   1st Qu.:11.298   1st Qu.:0.5949   1st Qu.:22.54  
+ Mode  :character   Median :14.834   Median :0.7866   Median :25.26  
+                    Mean   :18.285   Mean   :0.9245   Mean   :26.70  
+                    3rd Qu.:22.693   3rd Qu.:1.1661   3rd Qu.:31.83  
+                    Max.   :68.664   Max.   :2.3920   Max.   :70.25  
+       HV            LS_Factor             MCARI               NDTI        
+ Min.   :-31.215   Min.   : 0.000109   Min.   :0.008303   Min.   :0.02205  
+ 1st Qu.:-23.681   1st Qu.: 0.182144   1st Qu.:0.048960   1st Qu.:0.16573  
+ Median :-19.620   Median : 0.398931   Median :0.062091   Median :0.18370  
+ Mean   :-19.559   Mean   : 1.367394   Mean   :0.063377   Mean   :0.18000  
+ 3rd Qu.:-15.394   3rd Qu.: 0.994487   3rd Qu.:0.077803   3rd Qu.:0.20172  
+ Max.   : -8.273   Max.   :42.507114   Max.   :0.133466   Max.   :0.23763  
+ Relative_Slope_Position    Suelos_      Topographic_Wetness_Index
+ Min.   :0.000000        Min.   : 0.00   Min.   : 5.026           
+ 1st Qu.:0.001624        1st Qu.: 4.00   1st Qu.: 7.413           
+ Median :0.008076        Median :17.00   Median : 8.399           
+ Mean   :0.037125        Mean   :22.99   Mean   : 9.777           
+ 3rd Qu.:0.033358        3rd Qu.:39.50   3rd Qu.:10.900           
+ Max.   :0.781887        Max.   :57.00   Max.   :25.343           
+  Valley_Depth              geometry  
+ Min.   :  4.941   POINT        :223  
+ 1st Qu.:121.849   epsg:4326    :  0  
+ Median :195.087   +proj=long...:  0  
+ Mean   :237.090                      
+ 3rd Qu.:303.693                      
+ Max.   :770.234                      </code></pre>
+</div>
+</div>
+</section>
+<section id="convertir-a-dataframe-para-modelado-no-se-tiene-en-cuenta-la-columna-id" class="level1">
+<h1>14. Convertir a dataframe para modelado, no se tiene en cuenta la columna ID</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>data_sf_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(data_sf)[<span class="dv">2</span><span class="sc">:</span><span class="dv">12</span>]</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>data_sf_df <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(data_sf_df)<span class="co">#</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data_sf_df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Lim_sup             CI              C.O              HV         
+ Min.   : 3.625   Min.   :0.1548   Min.   :16.10   Min.   :-31.215  
+ 1st Qu.:11.298   1st Qu.:0.5949   1st Qu.:22.54   1st Qu.:-23.681  
+ Median :14.834   Median :0.7866   Median :25.26   Median :-19.620  
+ Mean   :18.285   Mean   :0.9245   Mean   :26.70   Mean   :-19.559  
+ 3rd Qu.:22.693   3rd Qu.:1.1661   3rd Qu.:31.83   3rd Qu.:-15.394  
+ Max.   :68.664   Max.   :2.3920   Max.   :70.25   Max.   : -8.273  
+   LS_Factor             MCARI               NDTI        
+ Min.   : 0.000109   Min.   :0.008303   Min.   :0.02205  
+ 1st Qu.: 0.182144   1st Qu.:0.048960   1st Qu.:0.16573  
+ Median : 0.398931   Median :0.062091   Median :0.18370  
+ Mean   : 1.367394   Mean   :0.063377   Mean   :0.18000  
+ 3rd Qu.: 0.994487   3rd Qu.:0.077803   3rd Qu.:0.20172  
+ Max.   :42.507114   Max.   :0.133466   Max.   :0.23763  
+ Relative_Slope_Position    Suelos_      Topographic_Wetness_Index
+ Min.   :0.000000        Min.   : 0.00   Min.   : 5.026           
+ 1st Qu.:0.001624        1st Qu.: 4.00   1st Qu.: 7.413           
+ Median :0.008076        Median :17.00   Median : 8.399           
+ Mean   :0.037125        Mean   :22.99   Mean   : 9.777           
+ 3rd Qu.:0.033358        3rd Qu.:39.50   3rd Qu.:10.900           
+ Max.   :0.781887        Max.   :57.00   Max.   :25.343           
+  Valley_Depth    
+ Min.   :  4.941  
+ 1st Qu.:121.849  
+ Median :195.087  
+ Mean   :237.090  
+ 3rd Qu.:303.693  
+ Max.   :770.234  </code></pre>
+</div>
+</div>
+</section>
+<section id="mejor-semilla-particion-de-datos-y-mejor-modelo" class="level1">
+<h1>15.Mejor Semilla particion de datos y mejor modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> data_sf_df<span class="sc">$</span>Lim_sup</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> data_sf_df[, <span class="sc">!</span>(<span class="fu">names</span>(data_sf_df) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Lim_sup"</span>))]</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(X)</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>resultados_Lim_Sup_XGB <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="fu">integer</span>(),</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE_train =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2_train =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE_test =</span> <span class="fu">numeric</span>(),</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2_test =</span> <span class="fu">numeric</span>()</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>best_rmse  <span class="ot">&lt;-</span> <span class="cn">Inf</span></span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>best_model <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>best_seed  <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (s <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">500</span>) {</span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(s)</span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>  index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(y, <span class="at">p =</span> <span class="fl">0.70</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>  X_train <span class="ot">&lt;-</span> X[index, ]</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>  X_test  <span class="ot">&lt;-</span> X[<span class="sc">-</span>index, ]</span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a>  y_train <span class="ot">&lt;-</span> y[index]</span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a>  y_test  <span class="ot">&lt;-</span> y[<span class="sc">-</span>index]</span>
+<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a>  dtrain <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(X_train, <span class="at">label =</span> y_train)</span>
+<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a>  dtest  <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(X_test,  <span class="at">label =</span> y_test)</span>
+<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a>  params <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">objective =</span> <span class="st">"reg:squarederror"</span>,</span>
+<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">eta =</span> <span class="fl">0.05</span>,</span>
+<span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">max_depth =</span> <span class="dv">3</span>,</span>
+<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">subsample =</span> <span class="fl">0.8</span>,</span>
+<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">colsample_bytree =</span> <span class="fl">0.8</span></span>
+<span id="cb38-44"><a href="#cb38-44" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb38-45"><a href="#cb38-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-46"><a href="#cb38-46" aria-hidden="true" tabindex="-1"></a>  modelo <span class="ot">&lt;-</span> <span class="fu">xgb.train</span>(</span>
+<span id="cb38-47"><a href="#cb38-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">params =</span> params,</span>
+<span id="cb38-48"><a href="#cb38-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> dtrain,</span>
+<span id="cb38-49"><a href="#cb38-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">nrounds =</span> <span class="dv">100</span>,</span>
+<span id="cb38-50"><a href="#cb38-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">verbose =</span> <span class="dv">0</span></span>
+<span id="cb38-51"><a href="#cb38-51" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb38-52"><a href="#cb38-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-53"><a href="#cb38-53" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ===== TRAIN</span></span>
+<span id="cb38-54"><a href="#cb38-54" aria-hidden="true" tabindex="-1"></a>  pred_train <span class="ot">&lt;-</span> <span class="fu">predict</span>(modelo, dtrain)</span>
+<span id="cb38-55"><a href="#cb38-55" aria-hidden="true" tabindex="-1"></a>  RMSE_train <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(pred_train, y_train)</span>
+<span id="cb38-56"><a href="#cb38-56" aria-hidden="true" tabindex="-1"></a>  R2_train   <span class="ot">&lt;-</span> <span class="fu">cor</span>(pred_train, y_train)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb38-57"><a href="#cb38-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-58"><a href="#cb38-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ===== </span><span class="al">TEST</span></span>
+<span id="cb38-59"><a href="#cb38-59" aria-hidden="true" tabindex="-1"></a>  pred_test <span class="ot">&lt;-</span> <span class="fu">predict</span>(modelo, dtest)</span>
+<span id="cb38-60"><a href="#cb38-60" aria-hidden="true" tabindex="-1"></a>  RMSE_test <span class="ot">&lt;-</span> <span class="fu">RMSE</span>(pred_test, y_test)</span>
+<span id="cb38-61"><a href="#cb38-61" aria-hidden="true" tabindex="-1"></a>  R2_test   <span class="ot">&lt;-</span> <span class="fu">cor</span>(pred_test, y_test)<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb38-62"><a href="#cb38-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-63"><a href="#cb38-63" aria-hidden="true" tabindex="-1"></a>  resultados_Lim_Sup_XGB <span class="ot">&lt;-</span> <span class="fu">rbind</span>(</span>
+<span id="cb38-64"><a href="#cb38-64" aria-hidden="true" tabindex="-1"></a>    resultados_Lim_Sup_XGB,</span>
+<span id="cb38-65"><a href="#cb38-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb38-66"><a href="#cb38-66" aria-hidden="true" tabindex="-1"></a>      <span class="at">seed =</span> s,</span>
+<span id="cb38-67"><a href="#cb38-67" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE_train =</span> RMSE_train,</span>
+<span id="cb38-68"><a href="#cb38-68" aria-hidden="true" tabindex="-1"></a>      <span class="at">R2_train =</span> R2_train,</span>
+<span id="cb38-69"><a href="#cb38-69" aria-hidden="true" tabindex="-1"></a>      <span class="at">RMSE_test =</span> RMSE_test,</span>
+<span id="cb38-70"><a href="#cb38-70" aria-hidden="true" tabindex="-1"></a>      <span class="at">R2_test =</span> R2_test</span>
+<span id="cb38-71"><a href="#cb38-71" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb38-72"><a href="#cb38-72" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb38-73"><a href="#cb38-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-74"><a href="#cb38-74" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (RMSE_test <span class="sc">&lt;</span> best_rmse) {</span>
+<span id="cb38-75"><a href="#cb38-75" aria-hidden="true" tabindex="-1"></a>    best_rmse  <span class="ot">&lt;-</span> RMSE_test</span>
+<span id="cb38-76"><a href="#cb38-76" aria-hidden="true" tabindex="-1"></a>    best_model <span class="ot">&lt;-</span> modelo</span>
+<span id="cb38-77"><a href="#cb38-77" aria-hidden="true" tabindex="-1"></a>    best_seed  <span class="ot">&lt;-</span> s</span>
+<span id="cb38-78"><a href="#cb38-78" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb38-79"><a href="#cb38-79" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb38-80"><a href="#cb38-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-81"><a href="#cb38-81" aria-hidden="true" tabindex="-1"></a>best_seed</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 474</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>best_rmse</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 6.622479</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>best_model</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>##### xgb.Booster
+call:
+  xgb.train(params = params, data = dtrain, nrounds = 100, verbose = 0)
+# of features: 10 
+# of rounds:  100 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(resultados_Lim_Sup_XGB)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    seed RMSE_train  R2_train RMSE_test      R2_test
+1      1   4.241021 0.8964134  9.695528 1.625250e-01
+2      2   4.153169 0.8933615  9.288608 8.603018e-02
+3      3   3.875386 0.9060744  9.216748 1.390504e-01
+4      4   3.965563 0.8997346 10.321429 1.287443e-01
+5      5   3.936010 0.8948691  9.993476 1.167172e-01
+6      6   3.848229 0.8974890 11.975341 2.348261e-02
+7      7   4.052288 0.9005578  9.782095 2.233315e-01
+8      8   3.854199 0.8880482 11.243589 1.794364e-01
+9      9   4.328471 0.8933120  8.494153 1.766862e-01
+10    10   4.036058 0.8882689 11.296293 1.803378e-01
+11    11   4.264288 0.8882940 11.318455 7.507550e-02
+12    12   4.324419 0.8925217  9.095357 1.871425e-01
+13    13   4.064629 0.8735336 12.177627 4.846903e-02
+14    14   4.270075 0.8709570 10.439391 2.337520e-01
+15    15   4.262708 0.8948438  9.138616 1.491685e-02
+16    16   4.289330 0.8651895 11.748616 4.374475e-02
+17    17   4.304327 0.8811809 10.630590 5.921031e-02
+18    18   4.193525 0.8813395 10.861578 2.540277e-02
+19    19   4.105919 0.8849113 11.832099 3.155098e-02
+20    20   4.385433 0.8721677 10.609929 3.144918e-02
+21    21   4.070058 0.8994957 10.655273 4.121586e-02
+22    22   4.110354 0.9067704 10.746400 3.718983e-02
+23    23   3.444991 0.9025802 13.252758 3.162852e-02
+24    24   4.274444 0.8846579 10.495039 1.171970e-01
+25    25   4.177594 0.8962314  9.631005 1.273338e-01
+26    26   3.983655 0.9026792  9.021513 1.090805e-01
+27    27   4.164844 0.9008829 10.015837 3.436268e-02
+28    28   4.454500 0.8805624  9.956915 7.296610e-02
+29    29   4.126154 0.8791349 11.140400 3.228213e-02
+30    30   4.439861 0.8798309  9.671573 2.007342e-01
+31    31   3.938554 0.8801156 12.083760 2.009088e-01
+32    32   4.249758 0.8780841 10.723434 3.834388e-02
+33    33   4.008435 0.8786428 11.269009 1.050383e-01
+34    34   3.966427 0.8913476 10.512838 1.341278e-01
+35    35   3.716720 0.8981700 12.227040 4.411189e-02
+36    36   4.175285 0.8810132 10.919817 2.275122e-02
+37    37   4.385929 0.8788824  8.912803 3.051507e-01
+38    38   4.048641 0.8765911 11.877697 6.581432e-02
+39    39   3.916610 0.9075401  9.261634 3.447091e-02
+40    40   3.973060 0.9097386  8.853757 7.174144e-02
+41    41   3.875862 0.9051234  9.952197 2.664645e-02
+42    42   3.938247 0.8875139 11.815931 5.494708e-02
+43    43   4.385716 0.8886622  8.194838 2.371102e-01
+44    44   4.342353 0.8900386  8.859318 1.159216e-01
+45    45   3.945768 0.8996702 10.061351 9.272472e-02
+46    46   4.465683 0.8860841  8.892506 8.011281e-02
+47    47   3.926521 0.8945707 10.411647 1.147748e-01
+48    48   4.271179 0.8923781  8.563779 1.470764e-01
+49    49   4.594952 0.8815225  7.937177 7.983308e-02
+50    50   4.160083 0.8873410 10.740109 7.271208e-02
+51    51   3.772128 0.9131029 11.470292 3.772636e-02
+52    52   4.400406 0.8931390  7.818860 5.292855e-02
+53    53   4.417554 0.8677495 10.490328 1.485650e-01
+54    54   4.358291 0.8585081 11.009466 1.450778e-01
+55    55   4.345853 0.8904028  8.061734 1.032952e-01
+56    56   4.160756 0.9015267  9.175706 2.114258e-02
+57    57   3.652174 0.8986258 12.039794 4.033959e-02
+58    58   3.987958 0.9009705  9.520766 2.336807e-01
+59    59   3.784307 0.8797542 12.876528 7.279261e-02
+60    60   4.156241 0.8912174  9.831499 1.364434e-01
+61    61   4.050361 0.8873683 10.215319 1.629199e-02
+62    62   4.434513 0.8893240  9.075476 1.009738e-01
+63    63   4.118569 0.8923031  9.961830 1.031788e-01
+64    64   4.195652 0.8889406 10.854496 1.281872e-01
+65    65   4.321983 0.8708039 10.641358 1.168808e-01
+66    66   4.409094 0.8750710  9.439084 1.157367e-01
+67    67   4.124537 0.9031720  8.688777 1.155061e-01
+68    68   4.307628 0.8936254  8.061654 1.144704e-01
+69    69   4.781652 0.8727980  7.595255 2.008698e-01
+70    70   4.441879 0.8860556  7.703960 2.824406e-01
+71    71   4.293596 0.8856272  9.300755 1.266922e-01
+72    72   4.300199 0.8842480 10.315471 2.631978e-02
+73    73   4.084520 0.8847635 10.563071 4.463514e-02
+74    74   4.149901 0.8945473 10.641580 5.186680e-02
+75    75   4.126003 0.8942571 10.434072 9.609466e-02
+76    76   4.409963 0.8812377  9.699764 1.078049e-01
+77    77   4.127555 0.8933991  9.248431 1.093468e-01
+78    78   3.797951 0.8764483 12.869997 4.704782e-02
+79    79   4.367163 0.8922887  9.545802 1.355022e-01
+80    80   3.957107 0.9042416  8.982188 1.230599e-01
+81    81   4.163982 0.8652021 12.334240 2.668150e-02
+82    82   4.400312 0.8765941  9.326600 1.794682e-01
+83    83   4.104672 0.8890588 10.363305 2.898625e-02
+84    84   4.029346 0.8959897 10.100041 1.752450e-01
+85    85   4.186813 0.9003270  8.624519 1.278911e-01
+86    86   4.228102 0.9020478  8.466708 7.987356e-02
+87    87   4.363385 0.8913849  8.129642 7.964117e-02
+88    88   4.296103 0.8693429 11.096312 1.185624e-01
+89    89   4.010012 0.9063458  8.970430 1.339269e-01
+90    90   4.478992 0.8576870 10.811994 3.845801e-02
+91    91   4.230551 0.8955736  9.364519 1.669621e-01
+92    92   4.376055 0.8887121  9.118923 2.249502e-02
+93    93   4.438326 0.8891988  8.058759 1.777307e-01
+94    94   4.216716 0.8973601  8.953550 6.061902e-02
+95    95   4.005133 0.8969605  9.712824 1.041888e-01
+96    96   4.057372 0.8920174 10.606402 3.012650e-02
+97    97   4.027256 0.8945535  9.434033 6.986877e-02
+98    98   4.520015 0.8799149  8.683011 2.583228e-01
+99    99   4.189519 0.8932415  8.680241 1.776727e-01
+100  100   4.553644 0.8878793  7.814118 2.209197e-01
+101  101   3.808668 0.8983293 12.276836 1.008600e-02
+102  102   4.058562 0.8963251 10.056100 1.243489e-01
+103  103   4.277807 0.8565544 12.949129 1.339223e-02
+104  104   4.107469 0.8965197  9.428824 4.295126e-02
+105  105   4.157877 0.9015967  8.926357 1.649396e-01
+106  106   4.430146 0.8911284  9.225321 8.751642e-02
+107  107   4.176479 0.8933218  8.645339 2.453642e-01
+108  108   4.202187 0.8765320 11.856748 4.785155e-02
+109  109   4.438445 0.8591456 11.666349 3.577167e-02
+110  110   4.259038 0.8836680  8.696988 1.599384e-01
+111  111   4.142769 0.8831384 11.187088 8.478619e-02
+112  112   4.106779 0.8867286 10.049741 2.028481e-01
+113  113   4.261461 0.8803049 10.500797 1.086305e-01
+114  114   4.151389 0.8845674 11.700697 2.904481e-02
+115  115   4.657051 0.8703644  7.981512 1.891021e-01
+116  116   4.158467 0.8804663 12.071459 1.486093e-02
+117  117   3.846715 0.9010836  9.785308 1.693311e-01
+118  118   4.661709 0.8758211  8.596111 7.360471e-02
+119  119   3.949531 0.8814763 12.458028 4.834293e-02
+120  120   4.593772 0.8817496  7.388602 2.924306e-01
+121  121   4.269620 0.8838582 10.301832 7.370698e-02
+122  122   4.123133 0.8887653 10.702662 1.525704e-01
+123  123   4.433265 0.8673848 11.321647 7.866169e-02
+124  124   4.553661 0.8891026  7.527084 1.187039e-01
+125  125   4.286715 0.8914293  9.499003 2.216720e-01
+126  126   4.172412 0.8818903 11.601181 6.565221e-02
+127  127   4.291808 0.8788555  8.457828 1.557858e-01
+128  128   3.940802 0.8984770  9.859260 1.006139e-01
+129  129   4.398403 0.8883366  9.030637 2.429221e-02
+130  130   4.627465 0.8738803  9.026751 1.583617e-01
+131  131   4.541753 0.8835713  7.850212 2.229743e-01
+132  132   4.087811 0.8853754 11.699723 9.436841e-02
+133  133   4.294683 0.8911045  9.065783 1.387537e-01
+134  134   4.315482 0.9049610  7.572651 1.326137e-01
+135  135   4.087015 0.8973451  9.988692 1.448506e-03
+136  136   4.219376 0.8873253 11.237169 1.331596e-01
+137  137   4.316600 0.8874174 10.111327 1.903915e-01
+138  138   4.463029 0.8843279  7.813188 1.842573e-01
+139  139   4.162030 0.8925100  9.105956 8.454391e-02
+140  140   4.154919 0.9029913  8.426354 6.515790e-02
+141  141   4.224390 0.8937366  8.867629 1.390008e-01
+142  142   4.041610 0.8909498 10.820807 1.639803e-01
+143  143   4.114860 0.8830429 10.979200 2.595965e-02
+144  144   3.988446 0.8925406 11.196924 6.208145e-02
+145  145   3.912100 0.9082757 10.559715 1.321111e-01
+146  146   3.992055 0.8975870 10.252225 5.783342e-02
+147  147   4.484730 0.8498031 11.431012 8.321838e-02
+148  148   4.222822 0.8845689 10.346214 5.401928e-02
+149  149   4.375146 0.8678032 10.217397 9.685685e-02
+150  150   4.145940 0.9064380  8.209286 2.097193e-01
+151  151   4.321265 0.8869930  9.721160 1.495954e-01
+152  152   4.173634 0.8988248  9.602299 4.385334e-02
+153  153   4.427671 0.8769136  9.273245 2.237118e-01
+154  154   4.215349 0.8907904  9.410123 8.744625e-02
+155  155   4.044670 0.9015965  9.544669 9.415779e-02
+156  156   4.231601 0.8842868 10.645540 1.162301e-01
+157  157   4.372265 0.8768829 10.184350 3.693245e-02
+158  158   4.052345 0.8980248 10.040670 7.878014e-02
+159  159   4.213574 0.8692575 10.136067 1.170817e-01
+160  160   4.305502 0.8768261 11.511986 1.162068e-02
+161  161   4.259078 0.8913146 10.316244 6.746753e-02
+162  162   4.351625 0.8902558  8.282064 8.975889e-02
+163  163   4.072347 0.8806773 11.190119 1.591658e-01
+164  164   4.018265 0.9008556  9.873824 7.498635e-02
+165  165   4.026264 0.8943260 11.405401 8.608776e-02
+166  166   4.206532 0.8733346 11.004444 3.436673e-02
+167  167   4.285493 0.8986144  9.706039 5.313881e-02
+168  168   3.962856 0.9018034 10.071744 7.141306e-02
+169  169   4.386016 0.8941628  7.956083 1.205381e-01
+170  170   4.349969 0.8782089  9.706430 4.473906e-02
+171  171   3.910226 0.9045547  9.753474 6.048134e-02
+172  172   4.299303 0.8805350  9.714173 1.886480e-01
+173  173   4.390304 0.8733332  8.928473 2.560062e-01
+174  174   3.994789 0.9183335  8.972964 1.498503e-01
+175  175   4.208881 0.8784777 10.693621 5.425727e-02
+176  176   4.055329 0.8983488  9.588217 5.802707e-02
+177  177   4.455457 0.8725535 10.742789 1.078402e-02
+178  178   4.493293 0.8839736  8.629081 1.265723e-01
+179  179   4.361435 0.8865699  8.969282 4.366962e-02
+180  180   4.289540 0.8469753 12.144222 1.300839e-01
+181  181   4.440596 0.8855024  8.929070 1.366711e-01
+182  182   4.228119 0.8969440  8.090604 1.206473e-01
+183  183   4.215744 0.8973925  8.020890 1.768003e-01
+184  184   4.233843 0.8799378  9.366496 7.653978e-02
+185  185   4.154638 0.8822232 10.644652 1.692519e-01
+186  186   4.027636 0.8840857 10.211539 2.386585e-01
+187  187   4.075244 0.8870732 10.969577 9.089046e-02
+188  188   4.200574 0.8907531  9.419785 9.949073e-02
+189  189   3.423147 0.8907901 13.538692 5.296885e-02
+190  190   4.316829 0.8897374  8.321357 1.042910e-01
+191  191   4.292989 0.8600325 11.646417 8.482816e-02
+192  192   3.801842 0.9009842 10.999608 3.306800e-02
+193  193   4.351920 0.8877567  8.422843 1.357054e-01
+194  194   4.204692 0.8793234  9.798431 1.205723e-01
+195  195   4.214530 0.8852003 11.049956 1.113221e-01
+196  196   4.432353 0.8843604  7.699749 2.450861e-01
+197  197   4.326618 0.8827953  9.977483 4.898206e-02
+198  198   3.991984 0.8916376  9.987497 8.854426e-02
+199  199   4.420648 0.8694833 11.901290 3.613838e-03
+200  200   4.401122 0.8717359 11.026327 5.764060e-02
+201  201   4.536777 0.8829067  8.942914 7.033453e-02
+202  202   4.282984 0.8907441  8.927404 7.094425e-02
+203  203   4.066947 0.8929385  9.909943 1.238127e-01
+204  204   3.832532 0.8889535 11.729316 2.144588e-01
+205  205   4.242430 0.8767250 10.576261 1.152413e-01
+206  206   4.378773 0.8966606  8.083438 1.760640e-01
+207  207   4.113919 0.8881006 10.200116 7.900049e-02
+208  208   4.221363 0.8772586  9.760299 2.487432e-01
+209  209   3.815444 0.8990904 11.224736 1.008566e-01
+210  210   4.292460 0.8866476 11.538092 1.703534e-03
+211  211   3.738269 0.8766406 13.326165 6.935578e-02
+212  212   4.184197 0.9062984  9.556425 8.502055e-02
+213  213   4.344930 0.8693081 10.464565 1.516600e-01
+214  214   4.343316 0.8859047  9.465181 5.759209e-02
+215  215   4.162177 0.8948679 10.970955 4.419205e-02
+216  216   3.875365 0.9025014 11.464391 8.334059e-03
+217  217   4.180036 0.8837323 10.707109 1.527567e-01
+218  218   3.948024 0.8999182  9.910350 4.440210e-02
+219  219   3.713720 0.8956948 12.953031 1.654965e-02
+220  220   4.125903 0.8845031 11.674501 2.984436e-02
+221  221   4.050385 0.9019759  9.596618 9.650503e-02
+222  222   4.391976 0.8848831  9.556105 1.913396e-01
+223  223   3.976119 0.9086261 10.202922 7.987029e-02
+224  224   3.996858 0.9157862  7.921758 9.686154e-02
+225  225   4.471293 0.8824457  9.336358 1.878753e-01
+226  226   4.430156 0.8626811 11.086714 1.056939e-01
+227  227   4.189711 0.8695901 10.986678 5.041004e-02
+228  228   4.312339 0.8833410  8.740549 1.277073e-01
+229  229   4.176257 0.9047547  8.649835 1.353569e-01
+230  230   4.180370 0.8968077  9.089379 9.464678e-02
+231  231   4.082708 0.8819442 11.601898 2.288188e-02
+232  232   4.279701 0.8745144 10.147082 7.206537e-02
+233  233   4.297522 0.8922663  8.306649 2.020531e-01
+234  234   4.536241 0.8736603  9.450972 1.737694e-01
+235  235   4.223482 0.8875423 10.102235 8.588822e-02
+236  236   4.564193 0.8610422 11.147184 3.880565e-02
+237  237   4.419620 0.8907667  8.170510 1.695447e-01
+238  238   4.326804 0.8910751  8.032332 2.844135e-01
+239  239   3.751598 0.9038408 11.315217 2.149665e-02
+240  240   4.416725 0.8738588  9.057853 2.052406e-01
+241  241   4.199423 0.8755449 11.007531 1.184673e-01
+242  242   4.348489 0.8824360  9.125376 2.096296e-01
+243  243   4.225796 0.8822852 10.556871 9.098491e-02
+244  244   3.977118 0.9156343  9.259077 1.326598e-01
+245  245   4.345739 0.8690408  9.708199 9.560882e-02
+246  246   4.145022 0.8791483 11.837872 5.593997e-02
+247  247   4.179064 0.9008343  9.322022 1.828573e-01
+248  248   3.954316 0.9070954 10.162752 2.784595e-06
+249  249   4.198130 0.8776129 11.341835 4.217585e-02
+250  250   4.161205 0.8904699  9.759528 8.840576e-02
+251  251   4.204197 0.8891673 11.240346 1.926593e-03
+252  252   4.381254 0.8824091  9.286796 1.380923e-01
+253  253   4.253831 0.8876493 10.090265 9.672444e-02
+254  254   3.739255 0.8850929 13.910310 7.646410e-03
+255  255   4.218343 0.8962482  9.322801 1.743836e-01
+256  256   4.134105 0.9030202  8.807220 5.460605e-02
+257  257   4.563480 0.8453799 10.061878 1.702364e-01
+258  258   3.855988 0.9029449 10.469459 8.408228e-02
+259  259   4.206875 0.8561872 11.729433 1.125119e-01
+260  260   4.040946 0.8945341 10.888570 6.033166e-02
+261  261   4.286279 0.8760508  9.537255 1.095238e-01
+262  262   4.354304 0.8962379  7.970895 1.522149e-01
+263  263   3.948049 0.9026133 10.343907 1.180605e-01
+264  264   4.073082 0.9062060  8.477412 5.198411e-02
+265  265   3.708839 0.9037293 11.544751 2.538280e-02
+266  266   4.386533 0.8749526 10.359374 4.531025e-02
+267  267   4.070449 0.9043536  8.761566 1.833196e-01
+268  268   4.317592 0.8788833  9.128003 1.465304e-01
+269  269   4.495803 0.8756885  9.193364 2.295096e-01
+270  270   4.297602 0.8855890  9.247645 1.173363e-01
+271  271   4.209446 0.8826434  9.425799 1.551588e-01
+272  272   4.101854 0.9072872  8.187460 1.135356e-01
+273  273   3.822180 0.9102848  9.773597 1.050259e-01
+274  274   4.051271 0.8983572  9.944901 7.987745e-02
+275  275   3.979734 0.8919810 11.564950 5.524042e-02
+276  276   4.036884 0.9027554  9.103018 1.815877e-01
+277  277   4.036880 0.8999332  9.301978 3.669943e-02
+278  278   4.383891 0.8882852  9.757519 1.278484e-01
+279  279   4.255923 0.8597210 11.209502 1.261750e-01
+280  280   4.498448 0.8914404  8.046287 9.261149e-02
+281  281   4.349793 0.8835707  9.214051 2.539060e-01
+282  282   4.167117 0.8838261 10.625924 8.578044e-02
+283  283   4.410065 0.8799954  9.017623 9.355949e-02
+284  284   4.160409 0.8864230  9.751601 9.261372e-02
+285  285   4.280107 0.8987522  9.572128 2.174463e-01
+286  286   3.984819 0.8987795 10.056248 8.161188e-02
+287  287   3.981889 0.8735889 12.458316 4.021039e-03
+288  288   3.911792 0.8992405 10.355255 8.134267e-02
+289  289   4.098434 0.8893897 10.967333 2.283849e-02
+290  290   4.453474 0.8762219 10.678778 5.570532e-02
+291  291   4.180356 0.8979502  8.378418 1.340600e-01
+292  292   4.142168 0.8886553 10.269744 1.972314e-02
+293  293   3.895530 0.9037894 11.316816 1.342934e-01
+294  294   3.771601 0.8977238 11.938709 1.371114e-02
+295  295   3.997232 0.8664280 12.901457 1.108223e-02
+296  296   4.008903 0.8877265 11.049027 7.814698e-02
+297  297   4.325211 0.8928320  9.578860 6.696123e-02
+298  298   4.589109 0.8883793  7.365802 2.683712e-01
+299  299   4.257716 0.9036220  8.159353 7.067262e-02
+300  300   4.472435 0.8687849  9.906373 7.199648e-02
+301  301   4.005538 0.8967543  9.927678 1.073451e-01
+302  302   4.187281 0.8908837 11.015122 6.320410e-02
+303  303   4.207554 0.8867142 10.710456 1.018125e-01
+304  304   4.363702 0.8820655  9.281048 9.700523e-02
+305  305   4.268741 0.8895549  8.666145 1.446917e-01
+306  306   4.019868 0.9061055  9.079106 2.297296e-02
+307  307   4.164890 0.8918126  8.936424 1.353586e-01
+308  308   4.658666 0.8860288  7.020327 3.029518e-01
+309  309   4.051936 0.8978194 11.558164 9.982280e-03
+310  310   4.068679 0.9028310  8.549943 1.911891e-01
+311  311   4.030528 0.8884288 11.062847 6.220995e-02
+312  312   4.567399 0.8796939  9.644186 1.246193e-02
+313  313   4.175961 0.8904920  9.649430 6.353070e-02
+314  314   4.243935 0.8907215  8.272543 1.439470e-01
+315  315   4.287321 0.8855718  9.620027 1.984312e-01
+316  316   4.527781 0.8720140  9.623788 1.166203e-01
+317  317   4.038689 0.8862958  9.709013 9.566572e-02
+318  318   3.894729 0.8876332 11.690096 1.312018e-01
+319  319   4.481405 0.8807718 10.007105 5.559902e-02
+320  320   3.941680 0.9218042  8.105636 4.663896e-02
+321  321   4.060427 0.9141753  9.253188 9.987138e-02
+322  322   4.094800 0.8754246 10.636879 1.584435e-01
+323  323   4.085948 0.8905927 10.385856 2.025989e-01
+324  324   4.243771 0.8923949 10.190220 2.879954e-02
+325  325   3.808744 0.8983984 11.728668 3.069571e-02
+326  326   4.148342 0.8951575  9.231024 1.755353e-01
+327  327   4.268563 0.8546773 11.933578 6.583563e-02
+328  328   4.011522 0.8633970 12.183888 3.558497e-02
+329  329   4.411026 0.8821008 11.220494 1.301955e-02
+330  330   4.060217 0.8988637  9.153092 6.329439e-02
+331  331   3.943949 0.8944267  9.836501 8.980484e-02
+332  332   4.381995 0.8953093  8.169112 1.575310e-01
+333  333   4.409278 0.8901255  9.666003 1.253988e-01
+334  334   4.306537 0.8932840  8.679106 6.934689e-02
+335  335   4.342594 0.8711692  9.455388 2.100918e-01
+336  336   4.207654 0.8971043  9.558462 1.582006e-01
+337  337   3.963984 0.8820539 12.202268 1.146533e-02
+338  338   3.860616 0.8831420 11.112118 2.114718e-02
+339  339   4.134680 0.8921614  9.405782 4.512963e-02
+340  340   4.362847 0.8747149  9.600569 1.337612e-01
+341  341   4.402820 0.8851494  8.552798 1.133254e-01
+342  342   3.962929 0.8898839 11.022987 3.259886e-02
+343  343   4.151338 0.9064067  8.091153 1.489648e-01
+344  344   4.068735 0.8833883 10.629922 6.981758e-02
+345  345   4.249811 0.8976653  8.030067 2.261645e-01
+346  346   4.406481 0.8839026  8.763969 5.835693e-02
+347  347   4.026972 0.8798461 11.782503 4.924586e-02
+348  348   4.448058 0.8814188  8.460931 1.653543e-01
+349  349   4.220260 0.8766646 11.026636 1.352924e-01
+350  350   4.320315 0.8829264  9.350263 2.798814e-01
+351  351   4.197737 0.8776074 11.283052 4.247779e-02
+352  352   4.101689 0.9001748  9.276955 4.292425e-02
+353  353   4.333571 0.8787824  8.975657 3.918777e-02
+354  354   4.025456 0.8973445  9.675531 1.415035e-01
+355  355   4.242093 0.8968617  8.618799 6.700741e-02
+356  356   4.582612 0.8789472  8.456711 8.502471e-02
+357  357   4.208544 0.8867748  9.355655 1.161587e-01
+358  358   4.279596 0.8903500  8.776364 1.575504e-01
+359  359   4.074091 0.8927355  9.097986 1.573280e-01
+360  360   4.265325 0.8782288  9.715974 1.634114e-01
+361  361   4.200042 0.9079821  7.772165 8.485276e-02
+362  362   4.180278 0.8847268 10.675665 6.153224e-02
+363  363   4.447271 0.8772587 10.849126 5.301359e-02
+364  364   4.246986 0.8863238  9.759253 2.072793e-01
+365  365   4.141096 0.9015071  9.002874 6.480055e-02
+366  366   4.201595 0.9015456  7.762834 6.296186e-02
+367  367   4.020098 0.8982153  9.984593 3.993087e-02
+368  368   4.071692 0.8977917  9.966489 1.605764e-01
+369  369   4.390126 0.8983834  7.746877 1.328548e-01
+370  370   3.999094 0.8935228 10.663512 5.655059e-02
+371  371   4.314172 0.8696514 11.132985 4.346648e-02
+372  372   4.334117 0.8706889 10.783059 3.658847e-02
+373  373   3.775203 0.9017681 10.549654 2.018766e-01
+374  374   4.013804 0.8971045  9.673640 7.303129e-02
+375  375   4.192345 0.8933821 10.352440 4.985121e-02
+376  376   4.142613 0.8751261 11.137895 5.129289e-02
+377  377   3.967553 0.9039659  9.514049 4.249709e-02
+378  378   4.021688 0.8852941 11.352376 2.577080e-02
+379  379   4.423034 0.8678055  9.572510 1.568032e-01
+380  380   4.163600 0.8892818 10.111224 8.205088e-02
+381  381   4.444950 0.8859991  8.162034 1.765249e-01
+382  382   4.152925 0.9017827  8.721559 1.596175e-01
+383  383   4.199850 0.8827299 11.190004 4.805062e-02
+384  384   4.306853 0.8885470  9.264421 5.030631e-02
+385  385   4.108412 0.8894418  9.445101 1.713467e-01
+386  386   4.536871 0.8920457  7.881192 9.050947e-02
+387  387   4.123177 0.8904346 11.026526 6.557692e-02
+388  388   4.376407 0.8737041  8.913825 2.660948e-01
+389  389   4.247758 0.9019409  8.573239 1.816532e-01
+390  390   4.343851 0.8904718  8.213459 1.319749e-01
+391  391   4.037709 0.8793688 11.430970 4.091747e-02
+392  392   3.916146 0.8623564 12.529476 1.871249e-01
+393  393   3.962159 0.8988634 10.285753 9.581404e-02
+394  394   4.182335 0.8937883  8.338024 1.956404e-01
+395  395   4.063429 0.8819265 11.462211 1.461321e-01
+396  396   4.463006 0.8848670  8.682504 9.064723e-02
+397  397   3.881921 0.9094562 10.234086 3.577243e-02
+398  398   4.063008 0.8891350 11.057865 3.667381e-02
+399  399   4.111929 0.9057125  8.740251 6.599844e-02
+400  400   4.263737 0.8973358  8.489737 3.797869e-02
+401  401   3.845570 0.9024608 11.431909 7.036835e-02
+402  402   4.055020 0.8782905 11.143097 6.804434e-02
+403  403   4.359161 0.8925966  9.561976 1.711007e-01
+404  404   4.555155 0.8816278  8.679196 1.146023e-01
+405  405   4.626536 0.8576457 10.872098 6.354015e-02
+406  406   4.149797 0.8865366  9.541244 8.007825e-02
+407  407   3.947716 0.9105389  9.382987 2.560935e-02
+408  408   4.470181 0.8818817  8.302154 1.267692e-01
+409  409   3.919367 0.9053203 11.402191 4.152212e-03
+410  410   4.163544 0.8938235  8.852431 2.468041e-01
+411  411   4.369962 0.8867539  8.400242 8.454386e-02
+412  412   4.202107 0.8900499  8.681652 1.987994e-01
+413  413   4.290198 0.8877410  8.715315 1.451463e-01
+414  414   4.065902 0.8757710 12.433296 2.313355e-02
+415  415   4.162085 0.8940248  9.959265 5.731351e-02
+416  416   4.311584 0.8970418 10.226032 8.793387e-03
+417  417   3.923622 0.8925057 11.868618 1.558849e-02
+418  418   4.153178 0.8860463 11.196893 3.502053e-02
+419  419   4.402381 0.8611138 11.555145 2.842801e-02
+420  420   3.971195 0.8808258 12.308859 1.020317e-01
+421  421   4.297397 0.8667076 12.066433 2.312583e-02
+422  422   4.453190 0.8831058  9.820791 1.586394e-01
+423  423   4.281913 0.8740357 11.094179 5.026235e-02
+424  424   4.242733 0.8875740  9.343966 8.089137e-02
+425  425   4.078997 0.9094059  9.585277 4.374112e-03
+426  426   4.059749 0.8801855 11.591261 7.481775e-02
+427  427   4.512333 0.8500019 13.365300 1.530611e-03
+428  428   4.242650 0.8904695  9.311768 5.899295e-02
+429  429   4.287895 0.8909762  9.599613 4.966234e-02
+430  430   4.122530 0.8849317  9.817626 9.114064e-02
+431  431   4.400096 0.8814790  9.849541 1.825460e-01
+432  432   4.066362 0.8876140 10.445568 2.747576e-01
+433  433   4.300213 0.8873318 10.343502 1.278468e-01
+434  434   4.499244 0.8896353  7.194920 1.805047e-01
+435  435   4.019354 0.8906931 11.258405 5.467351e-02
+436  436   4.308703 0.8961914  9.096910 4.955165e-02
+437  437   4.160191 0.9019555  9.610630 1.133614e-01
+438  438   4.092915 0.8677312 12.008636 8.444650e-02
+439  439   4.019933 0.9091704  8.616894 7.891871e-02
+440  440   4.084898 0.8923617  9.557245 5.898325e-02
+441  441   4.341959 0.8807572  9.324258 7.027589e-02
+442  442   4.000822 0.8876093 11.009928 6.916645e-02
+443  443   4.148304 0.8795225 12.063073 8.713452e-03
+444  444   4.258030 0.8714603 11.988068 1.838880e-02
+445  445   4.013393 0.8794052 11.790700 3.846998e-02
+446  446   4.209974 0.8750394 11.480800 1.469671e-01
+447  447   4.509861 0.8748739  8.274424 1.387019e-01
+448  448   4.142999 0.8792851 10.665375 1.227264e-01
+449  449   4.168495 0.8794064  9.773569 1.085543e-01
+450  450   4.222300 0.8852900 10.611540 4.270404e-02
+451  451   3.963830 0.8785315 12.004502 2.161929e-02
+452  452   4.082126 0.9019838  9.434701 1.017298e-01
+453  453   3.876580 0.8830218 12.846156 8.086562e-02
+454  454   4.299398 0.8862392 10.064059 2.313180e-02
+455  455   4.192272 0.8928731  9.214429 9.632260e-02
+456  456   4.327809 0.8862129  9.494041 6.258661e-02
+457  457   4.145103 0.8848403  9.991402 2.115288e-01
+458  458   3.980255 0.8728202 12.151992 1.635609e-01
+459  459   4.102880 0.8868291  9.652930 1.007356e-01
+460  460   4.385906 0.8573898 13.066083 2.371031e-02
+461  461   4.263076 0.8915390  8.876787 1.715563e-01
+462  462   4.234024 0.8877111  9.594494 5.360877e-02
+463  463   4.370496 0.8710264  9.272553 1.468017e-01
+464  464   4.165037 0.8788851  9.642386 2.211839e-01
+465  465   4.165683 0.8967729  9.014968 8.107384e-02
+466  466   4.158422 0.8921682 10.889956 1.608986e-01
+467  467   3.862207 0.8924687 12.275951 6.140119e-02
+468  468   4.538957 0.8743430  9.343457 2.066165e-01
+469  469   4.154205 0.8799930 10.117875 7.709277e-02
+470  470   4.452837 0.8939073  7.455054 1.734512e-01
+471  471   4.260705 0.8891362 10.079157 2.302605e-02
+472  472   4.331555 0.8857443  9.294512 1.597826e-01
+473  473   3.997779 0.8979489 11.657572 2.498275e-03
+474  474   4.708190 0.8827806  6.622479 2.372707e-01
+475  475   4.301717 0.8795590  9.852905 1.404649e-01
+476  476   4.061708 0.8985113  9.968296 1.539560e-02
+477  477   4.205800 0.8925456 10.670327 3.639227e-02
+478  478   4.260079 0.8945797  9.686308 3.814638e-02
+479  479   4.004800 0.8913885 11.994504 4.498079e-02
+480  480   4.180552 0.8891565 10.457336 3.630207e-02
+481  481   4.081098 0.8988487  9.070555 8.707925e-02
+482  482   4.154197 0.8807148 11.371821 9.462765e-02
+483  483   4.093176 0.8915114 10.704542 2.546121e-01
+484  484   4.011781 0.8767966 12.084193 9.455950e-02
+485  485   4.119402 0.8763629 10.555184 8.667144e-02
+486  486   4.407180 0.8795468  9.102935 1.369471e-01
+487  487   3.991131 0.8862952 11.550566 1.185031e-01
+488  488   3.946550 0.8615310 12.947455 2.955700e-02
+489  489   4.275880 0.8702981 11.618646 1.625743e-02
+490  490   4.127677 0.9019719 11.126755 3.867797e-02
+491  491   4.222206 0.8637873 11.948337 5.730758e-02
+492  492   4.340251 0.8963545  9.437888 1.791456e-01
+493  493   4.552326 0.8748625  9.900222 6.333954e-02
+494  494   4.416524 0.8807701  9.431347 2.534343e-01
+495  495   4.197196 0.8990842  8.982256 8.382688e-02
+496  496   3.866305 0.8988385 12.147086 9.885028e-03
+497  497   4.256372 0.8890009 10.131762 1.347794e-01
+498  498   4.141466 0.8945150 10.568444 1.119682e-02
+499  499   4.142813 0.8892047  9.535465 1.056303e-01
+500  500   3.874500 0.8960499 10.360464 5.573736e-02</code></pre>
+</div>
+</div>
+</section>
+<section id="importancia-de-variables" class="level1">
+<h1>16.Importancia de variables</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xgboost)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>var_imp_xgb <span class="ot">&lt;-</span> <span class="fu">xgb.importance</span>(</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> best_model</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(var_imp_xgb)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     Feature      Gain      Cover  Frequency
+                      &lt;char&gt;     &lt;num&gt;      &lt;num&gt;      &lt;num&gt;
+1:                     MCARI 0.1379574 0.08341645 0.08943089
+2: Topographic_Wetness_Index 0.1273638 0.12950811 0.08617886
+3:                        CI 0.1250588 0.06960995 0.15121951
+4:              Valley_Depth 0.1222954 0.12774949 0.10569106
+5:                 LS_Factor 0.1155663 0.15153026 0.13170732
+6:   Relative_Slope_Position 0.1004001 0.16751536 0.10569106</code></pre>
+</div>
+</div>
+</section>
+<section id="importancia-de-variables-1" class="level1">
+<h1>17.Importancia de variables</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>var_imp_xgb_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">variables  =</span> var_imp_xgb<span class="sc">$</span>Feature,</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">importance =</span> var_imp_xgb<span class="sc">$</span>Gain</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>var_imp_xgb_df <span class="ot">&lt;-</span> var_imp_xgb_df[<span class="fu">order</span>(<span class="sc">-</span>var_imp_xgb_df<span class="sc">$</span>importance), ]</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(var_imp_xgb_df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   variables importance
+1                      MCARI 0.13795740
+2  Topographic_Wetness_Index 0.12736385
+3                         CI 0.12505882
+4               Valley_Depth 0.12229542
+5                  LS_Factor 0.11556630
+6    Relative_Slope_Position 0.10040013
+7                         HV 0.09715002
+8                       NDTI 0.06914819
+9                        C.O 0.05735456
+10                   Suelos_ 0.04770530</code></pre>
+</div>
+</div>
+</section>
+<section id="se-grafican-para-entender-cúal-está-influyendo-más-en-el-modelo" class="level1">
+<h1>18.Se grafican para entender cúal está influyendo más en el modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>XGBOOTS_Sup <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(var_imp_xgb_df <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(importance),</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(variables, importance), <span class="at">y =</span> importance)) <span class="sc">+</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Variables"</span>,</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Importancia"</span>,</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Importancia de variables – XGBoost (Lim_sup)"</span></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">14</span>),</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">18</span>)</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(XGBOOTS_Sup)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="XGBOOST_Lim_Sup_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="guardar-grafica-importancia_variables" class="level1">
+<h1>19. Guardar grafica Importancia_variables</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">filename =</span> <span class="st">"Importancia_variables_XGB.png"</span>,</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot =</span> XGBOOTS_Sup,</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">path =</span> <span class="st">"D:/MAESTRIA/Trabajo_final/graficos resultados"</span>,</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">18</span>,</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">14</span>,</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">units =</span> <span class="st">"cm"</span>,</span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">dpi =</span> <span class="dv">300</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="predicción-y-visualización" class="level1">
+<h1>Predicción y visualización</h1>
+</section>
+<section id="nombres-de-capas-variables-del-modelo" class="level1">
+<h1>20.Nombres de capas = variables del modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>dataVARS <span class="ot">&lt;-</span> <span class="fu">c</span>( <span class="st">"CI"</span>,<span class="st">"C.O"</span>, <span class="st">"MCARI"</span>, <span class="st">"LS_Factor"</span>, <span class="st">"NDTI"</span>, <span class="st">"HV"</span>,</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a> <span class="st">"Relative_Slope_Position"</span>, <span class="st">"Suelos_"</span>, <span class="st">"Topographic_Wetness_Index"</span> ,<span class="st">"Valley_Depth"</span>)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="co"># En terra usamos 'subset' para quedarnos solo con las capas que necesitamos</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Asumiendo que tu objeto raster se llama 'raster' (o cámbiale el nombre)</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>r_predictores <span class="ot">&lt;-</span> <span class="fu">subset</span>(raster, dataVARS)</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificación de seguridad (Debe salir T</span></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">"¿Están todas las variables?"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "¿Están todas las variables?"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">all</span>(dataVARS <span class="sc">%in%</span> <span class="fu">names</span>(r_predictores)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] TRUE</code></pre>
+</div>
+</div>
+</section>
+<section id="aplicar-modelo" class="level1">
+<h1>21. Aplicar modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>Limite_Sup_XGB <span class="ot">&lt;-</span> terra<span class="sc">::</span><span class="fu">predict</span>(</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  r_predictores,</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> best_model,</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">fun =</span> <span class="cf">function</span>(model, d, ...) {</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">predict</span>(model, <span class="fu">as.matrix</span>(d))</span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>  },</span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  Limite_Sup_XGB,</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Predicción del Límite Superior (XGBoost)"</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="XGBOOST_Lim_Sup_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="guardar-modelo-rf_grid" class="level1">
+<h1>22. Guardar modelo rf_grid</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(Limite_Sup_XGB, <span class="st">"D:/Mapa final/Limite_Superior_XGB.tif"</span>, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|---------|---------|---------|---------|
+=========================================
+                                          </code></pre>
+</div>
+</div>
+</section>
+<section id="guardar-imagen-png-modelo" class="level1">
+<h1>23. Guardar imagen png modelo</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="fu">png</span>(</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"D:/MAESTRIA/Trabajo_final/graficos resultados/Limite_Superior_XGB.png"</span>,</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">3000</span>,</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">2500</span>,</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">res =</span> <span class="dv">300</span></span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a>  Limite_Sup_XGB,</span>
+<span id="cb61-10"><a href="#cb61-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Predicción del Límite Superior del departamento de Meta y Vichada (XGB)"</span></span>
+<span id="cb61-11"><a href="#cb61-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb61-12"><a href="#cb61-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-13"><a href="#cb61-13" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+</section>
+<section id="recorte-de-un-area-especifica" class="level1">
+<h1>24. Recorte de un area especifica</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Raster de predicción</span></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> Limite_Sup_XGB   <span class="co"># o rast("Limite_Inferior_XGB.tif")</span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Polígono de la zona de interés</span></span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>zona <span class="ot">&lt;-</span> <span class="fu">vect</span>(<span class="st">"D:/MAESTRIA/Trabajo_final/shp tesis/Altillanura_2.shp"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="reproyectar" class="level1">
+<h1>25. Reproyectar</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>zona <span class="ot">&lt;-</span> <span class="fu">project</span>(zona, <span class="fu">crs</span>(r))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="cortar-area-de-estudio" class="level1">
+<h1>26. Cortar area de estudio</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>r_crop <span class="ot">&lt;-</span> <span class="fu">crop</span>(r, zona)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>r_crop <span class="ot">&lt;-</span> <span class="fu">mask</span>(r_crop, zona)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="mapa" class="level1">
+<h1>27. Mapa</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(r_crop, <span class="at">main =</span> <span class="st">"Predicion Limite Superior (XGB)</span><span class="sc">\n</span><span class="st"> Altillanura Plana del Departamento del Meta"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="XGBOOST_Lim_Sup_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="guardar-mapa" class="level1">
+<h1>28. Guardar mapa</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">writeRaster</span>(</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>  r_crop,</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"D:/Mapa final/Lim_sup_XGB_Altillanura.tif"</span>,</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">overwrite =</span> <span class="cn">TRUE</span></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="guardar-mapa-como-imagen" class="level1">
+<h1>29. Guardar mapa como imagen</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">png</span>(</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"D:/MAESTRIA/Trabajo_final/graficos resultados/Limite_Superior_Altillanura_XGB.png"</span>,</span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">width =</span> <span class="dv">3000</span>,</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">height =</span> <span class="dv">2500</span>,</span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">res =</span> <span class="dv">300</span></span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>  r_crop,</span>
+<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">"Predicion Limite Superior (XGB)</span><span class="sc">\n</span><span class="st"> Altillanura Plana del Departamento del Meta"</span></span>
+<span id="cb68-11"><a href="#cb68-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-12"><a href="#cb68-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-13"><a href="#cb68-13" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
